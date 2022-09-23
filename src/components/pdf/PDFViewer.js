@@ -32,7 +32,7 @@ export default function PDFViewer({ isShowPagination = false }) {
     })
   }
   // 依照 分頁形式 render Pdf 內容
-  function renderPageNationPdf() {
+  function renderPaginationPdf() {
     return (
       <>
         <Page
@@ -63,7 +63,7 @@ export default function PDFViewer({ isShowPagination = false }) {
   return (
     <>
       <Document file={'/pdf/Monsta-Infinite.pdf'} onLoadSuccess={onDocumentLoadSuccess}>
-        {isShowPagination ? renderPageNationPdf() : renderAllPdfPages()}
+        {isShowPagination ? renderPaginationPdf() : renderAllPdfPages()}
       </Document>
     </>
   )
