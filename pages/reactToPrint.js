@@ -1,7 +1,7 @@
 import Head from 'next/head'
 import styles from '../styles/Home.module.css'
 import { createRef } from 'react'
-import { useReactToPrint } from 'react-to-print'
+import ReactToPrint, { useReactToPrint } from 'react-to-print'
 import { Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material'
 import styled from 'styled-components'
 
@@ -23,7 +23,9 @@ const rows = [
 
 export default function ReactToPDF() {
   const printRef = createRef()
+  // 產生列印的 trigger function
   const handlePrint = useReactToPrint({
+    // 我們透過 ref 來 reference 需要列印的區塊(DOM)
     content: () => printRef.current,
   })
   function renderMuiTableView() {
@@ -56,7 +58,37 @@ export default function ReactToPDF() {
       </TableContainer>
     )
   }
-
+  function renderUseReactToPrintComponent() {
+    return (
+      <>
+        <ReactToPrint
+          // trigger 會在我們傳入的 React Component or Element 上面加上一個 onClick 事件，因此我們不需要自己去寫 onClick 事件
+          trigger={() => <Button variant='contained'>列印 or 儲存成 PDF (Print or Save to PDF)</Button>}
+          // content 主要回傳我們要列印的內容，我們透過 ref 來 reference 需要列印的區塊(DOM)
+          content={() => printRef.current}
+        />
+        <ReactToPrintContainer ref={printRef}>
+          <h1>MUI Table To Print</h1>
+          {/* 假資料 Table */}
+          {renderMuiTableView()}
+        </ReactToPrintContainer>
+      </>
+    )
+  }
+  function renderUseReactToPrintHook() {
+    return (
+      <div>
+        <Button variant='contained' onClick={handlePrint}>
+          列印 or 儲存成 PDF (Print or Save to PDF)
+        </Button>
+        <ReactToPrintContainer ref={printRef}>
+          <h1>MUI Table To Print</h1>
+          {/* 假資料 Table */}
+          {renderMuiTableView()}
+        </ReactToPrintContainer>
+      </div>
+    )
+  }
   return (
     <div className={styles.container}>
       <Head>
@@ -67,15 +99,10 @@ export default function ReactToPDF() {
 
       <main className={styles.main}>
         <h1>將下面內容透過 react-to-print 套件列印內容</h1>
-        <div>
-          <Button variant='contained' onClick={handlePrint}>
-            列印 or 儲存成 PDF (Print or Save to PDF)
-          </Button>
-          <ReactToPrintContainer ref={printRef}>
-            <h1>MUI Table To Print</h1>
-            {renderMuiTableView()}
-          </ReactToPrintContainer>
-        </div>
+        {/* 使用 component 版本 */}
+        {/* {renderUseReactToPrintComponent()} */}
+        {/* 使用 hook 版本 */}
+        {renderUseReactToPrintHook()}
       </main>
     </div>
   )

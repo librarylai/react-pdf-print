@@ -1,13 +1,15 @@
 import Head from 'next/head'
 import styles from '../styles/Home.module.css'
-import { createRef } from 'react'
+import { useRef } from 'react'
 import ReactToPdf from 'react-to-pdf'
 import { Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material'
 import styled from 'styled-components'
 const ReactToPDFContainer = styled.div`
   width: 100%;
 `
-
+const Title = styled.h1`
+  color: deepskyblue;
+`
 function createData(name, calories, fat, carbs, protein) {
   return { name, calories, fat, carbs, protein }
 }
@@ -21,7 +23,8 @@ const rows = [
 ]
 
 export default function ReactToPDF() {
-  const pdfRef = createRef()
+  // 透過 useRef Hook 產生一個 custom ref
+  const pdfRef = useRef()
 
   function renderMuiTableView() {
     return (
@@ -65,6 +68,7 @@ export default function ReactToPDF() {
       <main className={styles.main}>
         <h1>將下面內容透過 React-to-pdf 套件轉成 PDF 檔</h1>
         <div>
+          {/* 將 ref 綁定到  targetRef props 上  */}
           <ReactToPdf targetRef={pdfRef} filename='muiTable.pdf'>
             {({ toPdf }) => (
               <Button variant='contained' onClick={toPdf}>
@@ -72,8 +76,9 @@ export default function ReactToPDF() {
               </Button>
             )}
           </ReactToPdf>
+          {/* 將 ref 也綁定到需要轉成 PDF 的內容上  */}
           <ReactToPDFContainer ref={pdfRef}>
-            <h1>MUI Table</h1>
+            <Title>MUI Table</Title>
             {renderMuiTableView()}
           </ReactToPDFContainer>
         </div>
