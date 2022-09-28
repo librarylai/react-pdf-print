@@ -1,4 +1,8 @@
-# React PDF 與 列印 相關套件
+# 【筆記】React PDF 相關套件
+
+###### tags: `筆記文章`
+
+![](https://i.imgur.com/Pra5Qfk.png)
 
 最近剛好與朋友討論到將『前端畫面直接轉成 PDF 下載、列印』的部分，所以就整理了幾套關於這部分的 React 套件。
 
@@ -57,7 +61,7 @@ const pdfRef = useRef()
 
 > **GitHub**：[**react-to-print**](https://github.com/gregnb/react-to-print) >**安裝：** yarn add react-to-print
 
-**react-to-print** 主要的功能是幫我們『列印選取的 HTML 內容』，如果去看它的程式碼可以發現作者透過 iframe.contentWindow.print() 來呼叫 browser 的列印功能，當然裡面還有處理很多不支援或是 ios,android 上的部分。
+**react-to-print** 主要的功能是幫我們『列印選取的 HTML 內容』，如果去看它的程式碼可以發現作者透過 iframe.contentWindow.print() 來呼叫 browser 的列印功能。
 
 #### 簡單介紹 react-to-print 在使用的幾種方式：
 
@@ -145,4 +149,169 @@ function Print(){
 
 > **GitHub**：[**React-PDF**](https://github.com/wojtekmaj/react-pdf) > **安裝**： yarn add react-pdf
 
-上面介紹的 **react-to-pdf** 與 **react-to-print** 都是偏向於將 HTML 內容產生成 PDF 檔案，而在工作上比較常碰到的需求是『將 PDF 內容呈現在網頁上』，例如將『法規』、『使用條款』...等 pdf 內容呈現在網頁上，如果單純使用 Html 來排版可能幾個小時就不見了，而且這種客製化的畫面很難必此之間共用，在大型的架構下就容易造成
+上面介紹的 **react-to-pdf** 與 **react-to-print** 都是偏向於將 HTML 內容產生成 PDF 檔案，然而在工作上比較常碰到的需求是『將 PDF 內容呈現在網頁上』，例如將『法規』、『使用條款』...等 PDF 內容呈現在網頁上，如果單純使用 Html 來排版可能會花上幾個小時的時間，而且這種客製化的頁面很難必此之間共用、且維運上也比較麻煩，每當內容有調整時就需要去檔案中尋找該行程式碼來修改。
+
+因此如果可以直接將 PDF 檔案 Render 到頁面上，就可以減少很多這方面的功夫，每當內容有調整時，只需要將舊的 PDF 文件覆蓋掉即可，甚至也可以寫一個共用的 `<PdfViewer/>` Component 來專門處理 Render PDF 檔案的需求，是不是感覺很方便啊！！！
+
+### 官方範例
+
+在使用 **react-pdf** 時最核心的 Component 就是：`Document` 與 `Page` 這兩個 Component。
+我們主要透過將 PDF 文件路徑傳給 `Document` 的 `file` 屬性中，讓它能夠去讀取這份文件，而 `Page` 主要負責將 PDF 內的頁面渲染到網頁上，因此我們需要透過 `pageNumber` 這個屬性來『告訴 `Page` 要讀取哪一頁』。
+
+#### 我們先來看一下官方範例
+
+```jsx=
+// 引入 Document, Page  兩個核心 Component
+import { Document, Page } from 'react-pdf';
+
+function MyApp() {
+  // 紀錄 PDF 總共多少頁
+  const [numPages, setNumPages] = useState(null);
+  // 紀錄當前頁數
+  const [pageNumber, setPageNumber] = useState(1);
+  // 當 PDF 讀取成功時呼叫 cb
+  function onDocumentLoadSuccess({ numPages }) {
+    setNumPages(numPages);
+  }
+
+  return (
+    <div>
+      {/*
+        * file: 檔案路徑、Url
+        * onLoadSuccess： 當 PDF 檔案讀取成功時，將該份 PDF 的總頁數存進 useState 中，方便之後『切換頁面』或是『一次 Render 全部』 使用
+        *
+        * */}
+      <Document file="somefile.pdf" onLoadSuccess={onDocumentLoadSuccess}>
+        <Page pageNumber={pageNumber} />
+      </Document>
+    </div>
+  );
+}
+```
+
+### 建立共用 PDFViewer Component
+
+大概知道套件該如何使用後，現在我們來建立一個共用的 PDFViewer Component 吧，而在實作過程中陸陸續續碰到了一些問題，以下為問題相關解法：
+
+1. **Failed to load PDF file.**
+   會出現這個問題基本上是因為沒有設定 PDF Worker，因此我們需要從 `pdfjs-dist` 中引入 Worker 並且將 Worker 設定到 `GlobalWorkerOptions.workerSrc` 上即可。[參考文件](https://github.com/mozilla/pdf.js/issues/8305#issuecomment-1004054543)
+
+2. **使用 Nextjs 在 SSR 請況下因為 PDF.js 需要 browser API 的支援因此導致報錯問題。**
+   透過 dynamic import 上設定 ssr 為 false 解決 browser api 在 node 環境下不支援問題。[參考文件](https://github.com/wojtekmaj/react-pdf/issues/136#issuecomment-405393139)
+
+#### 完整程式碼
+
+```jsx=
+import Pagination from '@mui/material/Pagination'
+import Stack from '@mui/material/Stack'
+import styled from 'styled-components'
+import { Document, Page, pdfjs } from 'react-pdf'
+import { useState } from 'react'
+import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.entry'
+pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker
+
+/*
+ * isUsePaginationMode : 是否要用分頁模式 (預設一次將 PDF 內容全部渲染出來)
+ * pdfUrl： PDF 文件路徑
+ * */
+export default function PDFViewer({ isUsePaginationMode = false, pdfUrl }) {
+  // 紀錄 PDF 總共多少頁
+  const [totalPdfPages, setTotalPdfPages] = useState(null)
+  // 紀錄當前頁數
+  const [pageNumber, setPageNumber] = useState(1)
+  // 抓取當前 視窗寬度 (優化方面：可監聽 window.resize 調整)
+  const windowWidth = window.innerWidth
+  // 當 PDF 讀取成功時呼叫 cb
+  function onDocumentLoadSuccess({ numPages }) {
+    setTotalPdfPages(numPages)
+  }
+  // render Pdf 全部頁面內容
+  function renderAllPdfPages() {
+    if (!totalPdfPages) return
+    const mockArray = [...new Array(totalPdfPages)]
+    return mockArray.map((_, index) => {
+      return <Page width={windowWidth <= 768 ? windowWidth : 1024} key={`page-${index}`} pageNumber={index + 1} />
+    })
+  }
+  // 依照 分頁形式 render Pdf 內容
+  function renderPaginationPdf() {
+    return (
+      <>
+        <Page
+          width={windowWidth <= 768 ? windowWidth : 1024}
+          height={windowWidth <= 768 ? window.innerHeight : 500}
+          key={`page-${pageNumber}`}
+          pageNumber={pageNumber}
+        />
+        <PaginationWrapper>
+          <Stack spacing={2}>
+            <Pagination
+              count={totalPdfPages ?? 0}
+              variant='outlined'
+              color='primary'
+              onChange={(event, value) => {
+                console.log('value', value)
+                setPageNumber(value)
+              }}
+            />
+          </Stack>
+          <PaginationSizeWrapper>
+            {pageNumber} / {totalPdfPages ?? 0}
+          </PaginationSizeWrapper>
+        </PaginationWrapper>
+      </>
+    )
+  }
+  return (
+    <>
+      {/*
+       * file: 檔案路徑、Url
+       * onLoadSuccess： 當 PDF 檔案讀取成功時，將該份 PDF 的總頁數存進 useState 中，方便之後『切換頁面』或是『一次 Render 全部』 使用
+       *
+       * */}
+      <Document file={pdfUrl} onLoadSuccess={onDocumentLoadSuccess}>
+        {isUsePaginationMode ? renderPaginationPdf() : renderAllPdfPages()}
+      </Document>
+    </>
+  )
+}
+
+```
+
+#### 使用 PDFViewer 範例
+
+```jsx=
+import dynamic from 'next/dynamic'
+/* 重點在這邊～～～～～ */
+const PDFViewer = dynamic(import('../src/components/pdf/PDFViewer'), { ssr: false })
+
+function ReactPdfRender() {
+  const [isUsePaginationMode, setIsUsePaginationMode] = useState(false) // 是否要使用分頁模式
+  return (
+    <div>
+      <Head>
+        <title>React render PDF</title>
+        <meta name='description' content='Generated by create next app' />
+        <link rel='icon' href='/favicon.ico' />
+      </Head>
+      {/* 重點在這邊～～～～～ */}
+      <PDFViewer pdfUrl={'/pdf/Monsta-Infinite.pdf'} isUsePaginationMode={isUsePaginationMode} />
+    </div>
+  )
+}
+export default ReactPdfRender
+```
+
+### 成果
+
+![](https://i.imgur.com/qnD5D6P.gif)
+
+#### 以上為【 React PDF 相關套件 】的簡單介紹，希望對剛好有碰到相關需求的人能有一點點幫助，如有任何錯誤或冒犯的地方還請各位多多指教，謝謝您的觀看。
+
+#### GitHub : [https://github.com/librarylai/react-pdf-print](https://github.com/librarylai/react-pdf-print)
+
+## Reference
+
+1. [react-to-pdf](https://github.com/ivmarcos/react-to-pdf#readme)
+2. [react-to-print](https://github.com/gregnb/react-to-print)
+3. [react-pdf](https://github.com/wojtekmaj/react-pdf)
