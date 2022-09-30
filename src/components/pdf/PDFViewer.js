@@ -53,8 +53,8 @@ export default function PDFViewer({ isUsePaginationMode = false, pdfUrl }) {
           <Stack spacing={2}>
             <Pagination
               count={totalPdfPages ?? 0}
-              variant='outlined'
-              color='primary'
+              variant="outlined"
+              color="primary"
               onChange={(event, value) => {
                 console.log('value', value)
                 setPageNumber(value)
