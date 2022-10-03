@@ -6,6 +6,7 @@ import Container from '@mui/material/Container'
 import MenuItem from '@mui/material/MenuItem'
 import { NAVBAR_CONFIGS } from '../../../constants/pathConfig'
 import { useRouter } from 'next/router'
+import Link from 'next/link'
 
 function Navbar(props) {
   const router = useRouter()
@@ -13,26 +14,28 @@ function Navbar(props) {
     router.push(item.url)
   }
   return (
-    <AppBar position='static'>
-      <Container maxWidth='xl' sx={{ display: 'flex' }}>
-        <Typography
-          variant='h6'
-          noWrap
-          sx={{
-            mr: 2,
-            fontFamily: 'monospace',
-            fontWeight: 700,
-            color: 'inherit',
-            textDecoration: 'none',
-          }}
-        >
-          React PDF Demo
-        </Typography>
+    <AppBar position="static">
+      <Container maxWidth="xl" sx={{ display: 'flex' }}>
+        <Link href="/">
+          <Typography
+            variant="h6"
+            noWrap
+            sx={{
+              mr: 2,
+              fontFamily: 'monospace',
+              fontWeight: 700,
+              color: 'inherit',
+              textDecoration: 'none',
+            }}
+          >
+            React PDF Demo
+          </Typography>
+        </Link>
 
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {NAVBAR_CONFIGS.map((item) => (
             <MenuItem key={item.name} onClick={() => handleNavbarClick(item)}>
-              <Typography sx={{ marginRight: '16px' }} textAlign='center'>
+              <Typography sx={{ marginRight: '16px' }} textAlign="center">
                 {item.name}
               </Typography>
             </MenuItem>
