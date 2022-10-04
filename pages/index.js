@@ -6,6 +6,7 @@ import Rotate from 'react-reveal/Rotate'
 import Flip from 'react-reveal/Flip'
 import Jello from 'react-reveal/Jello'
 import RubberBand from 'react-reveal/Jello'
+import { InView } from 'react-intersection-observer'
 
 const SectionWrapper = styled.div`
   width: 100%;
@@ -48,11 +49,7 @@ const SECTION_LIST = [
     imageUrl: 'https://picsum.photos/id/1079/600/500',
     bgc: '#372948',
     animateFn: (child, animateProps) => {
-      return (
-        <Flip {...animateProps}>
-          <Jello>{child}</Jello>
-        </Flip>
-      )
+      return <Flip {...animateProps}>{child}</Flip>
     },
   },
 ]
@@ -63,24 +60,32 @@ export default function Home() {
       return (
         <SectionWrapper key={sectionItem.title} style={{ backgroundColor: sectionItem.bgc }}>
           <Grid container xs={4} md={6} lg={8} xl={10} justifyContent={'space-between'} alignItems={'center'}>
-            <Grid item xs={4}>
-              {sectionItem.animateFn(<Image alt="pdf" height={250} width={350} src={sectionItem.imageUrl} />, {
-                left: true,
-                unmountOnExit: true,
-              })}
-            </Grid>
-            <Grid item xs={7}>
-              {sectionItem.animateFn(
-                <>
-                  <h1>{sectionItem.title}</h1>
-                  <p>{sectionItem.content}</p>
-                </>,
-                {
-                  right: true,
-                }
+            <InView>
+              {({ inView, ref }) => (
+                <Grid ref={ref} item xs={4}>
+                  {sectionItem.animateFn(<Image alt="pdf" height={250} width={350} src={sectionItem.imageUrl} />, {
+                    left: true,
+                    spy: inView,
+                  })}
+                </Grid>
               )}
-              <Fade right></Fade>
-            </Grid>
+            </InView>
+            <InView>
+              {({ inView, ref }) => (
+                <Grid ref={ref} item xs={7}>
+                  {sectionItem.animateFn(
+                    <>
+                      <h1>{sectionItem.title}</h1>
+                      <p>{sectionItem.content}</p>
+                    </>,
+                    {
+                      right: true,
+                      spy: inView,
+                    }
+                  )}
+                </Grid>
+              )}
+            </InView>
           </Grid>
         </SectionWrapper>
       )
