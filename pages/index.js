@@ -49,12 +49,20 @@ const SECTION_LIST = [
     imageUrl: 'https://picsum.photos/id/1079/600/500',
     bgc: '#372948',
     animateFn: (child, animateProps) => {
-      return <Flip {...animateProps}>{child}</Flip>
+      return (
+        <Flip {...animateProps}>
+          <Jello>{child}</Jello>
+        </Flip>
+      )
     },
   },
 ]
 
 export default function Home() {
+  /*
+    react-reveal: https://github.com/rnosov/react-reveal
+    react-intersection-observer: https://www.npmjs.com/package/react-intersection-observer
+  */
   function renderSectionsView() {
     return SECTION_LIST.map((sectionItem) => {
       return (
