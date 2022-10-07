@@ -7,7 +7,7 @@ import Flip from 'react-reveal/Flip'
 import Jello from 'react-reveal/Jello'
 import RubberBand from 'react-reveal/Jello'
 import { InView } from 'react-intersection-observer'
-
+// test vercel preview deploy
 const SectionWrapper = styled.div`
   width: 100%;
   height: 400px;
