@@ -6,10 +6,11 @@ import { Provider } from 'react-redux'
 import store from '@/redux/store'
 import { HelmetProvider } from 'react-helmet-async'
 function MyApp({ Component, pageProps }) {
+  const helmetContext = {}
   return (
     <>
       <Provider store={store}>
-        <HelmetProvider>
+        <HelmetProvider context={helmetContext}>
           <ThemeProvider theme={theme}>
             <Navbar />
             <Component {...pageProps} />
