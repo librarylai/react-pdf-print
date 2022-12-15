@@ -79,9 +79,9 @@ export default function ReactToPDF() {
       </Head>
       <Helmet prioritizeSeoTags>
         <title>來自 helmet 的 pdf</title>
-        <meta property="og:title" content="來自 helmet 的 pdf" />
-        <meta property="og:description" content="來自 helmet 的 pdf Desc" />
-        <meta property="og:image" content="https://picsum.photos/id/2/200/200" />
+        <meta property="og:title" content="來自 helmet 的 pdf" data-react-helmet="true" />
+        <meta property="og:description" content="來自 helmet 的 pdf Desc" data-react-helmet="true" />
+        <meta property="og:image" content="https://picsum.photos/id/2/200/200" data-react-helmet="true" />
       </Helmet>
       <main className={styles.main}>
         <h1>將下面內容透過 React-to-pdf 套件轉成 PDF 檔</h1>
